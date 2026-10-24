@@ -26,7 +26,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=Caveat:wght@500;700&display=swap">
 <style>
 *,*::before,*::after{box-sizing:border-box}
-img{max-width:100%}
 [hidden]{display:none!important}
 button,input,textarea{font:inherit}
 /* Layout: full-bleed painted stall anchored to its counter; the bunch is held first-person at the bottom; wrapping and receiving happen centre-stage with a paper card beside (desktop) or below (phone) */
@@ -71,7 +70,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bunch .st{max-width:none;display:block;user-select:none;-webkit-user-drag:none}
 .bunch .hd{pointer-events:none}
 body.touch-heads .bunch .hd{pointer-events:auto;cursor:pointer}
-.bunch .ext{background:linear-gradient(90deg,#3f622b,#6a9447 45%,#3c5e29);border-radius:3px;opacity:.92}
+.bunch .ext{background:linear-gradient(90deg,#4e3c30 0,#4e3c30 14%,#8f9370 27%,#abad87 50%,#898e69 73%,#4e3c30 86%,#4e3c30 100%);border-radius:0 0 45% 45%/0 0 6px 6px}
 .bunch .tie{position:absolute;z-index:90000;transition:opacity .3s}
 .bunch .layer{position:absolute;isolation:isolate}
 .bunch .layer img{display:block;width:100%;height:100%}
@@ -341,6 +340,8 @@ const STEMS = {
 };
 const TYPES = Object.keys(STEMS);
 // painted cut-outs: image size and where the bloom sits (centre hx,hy and diameter d, as fractions)
+// where each painted stem runs near its cut end: [x as a fraction of the width, stem width in image px]
+const STEMEND = {rose:[.51,21],rose2:[.501,18],peony:[.495,22],peony2:[.628,20],tulip:[.472,21],tulip2:[.352,22],sunflower:[.464,25],sunflower2:[.642,26],lavender:[.462,10],anemone:[.552,17],anemone2:[.586,19],cosmos:[.516,12],ranunculus:[.462,17],ranunculus2:[.49,18],eucalyptus:[.688,11],sweetpea:[.454,13]};
 const GEO = {
   rose:{w:420,h:800,hx:0.5,hy:0.125,d:0.4}, peony:{w:393,h:800,hx:0.434,hy:0.168,d:0.426},
   tulip:{w:233,h:800,hx:0.487,hy:0.139,d:0.278}, sunflower:{w:386,h:800,hx:0.48,hy:0.155,d:0.44},
@@ -540,7 +541,7 @@ function slotFor(i, n, vk, rank = i){
   py += r*r*.18*D;                                          // a rounded dome
   if(s.filler){ py -= .3*D; px *= 1.04; }
   const jit = (rnd(i+1+SEED*31) - .5)*7, sj = 1 + (rnd(i+7) - .5)*.1;
-  const theta = Math.atan2(px, -py + .6*A.Hc)*180/Math.PI*1.25 + jit;
+  const theta = Math.atan2(px, -py)*180/Math.PI + jit;
   const edge = 1 - .16*r*r;                                 // rim heads read smaller, as they turn away
   const k = D*s.rel*sj*edge/(s.d*s.h);
   const w = s.w*k, h = s.h*k;
@@ -548,9 +549,25 @@ function slotFor(i, n, vk, rank = i){
   const z = 40000 + Math.round(front*2000) + Math.round(py*.4) - (s.filler ? 900 : 0);
   return {px, py, theta, w, h, k, z, bright: .82 + .18*Math.min(1, front + .25)};
 }
+// the painting's stem leans a little inside its image; turn the image so that lean points at the binding too
+function stemRot(st, sl){
+  const s = S(st.vk), e = STEMEND[st.vk] || [s.hx, 18];
+  const vx = (st.flip ? -1 : 1)*(e[0] - s.hx)*sl.w, vy = (.93 - s.hy)*sl.h;
+  return sl.theta - Math.atan2(-vx, vy)*180/Math.PI;
+}
+function placeExt(st, sl, rot, masked){
+  const s = S(st.vk), e = STEMEND[st.vk] || [s.hx, 18], r = rot*Math.PI/180;
+  const lx = (st.flip ? -1 : 1)*(e[0] - s.hx)*sl.w, ly = (.9 - s.hy)*sl.h;              // a little above the cut, still on the painted stem
+  const P = {x: sl.px + lx*Math.cos(r) - ly*Math.sin(r), y: sl.py + lx*Math.sin(r) + ly*Math.cos(r)};
+  const gx = -P.x, gy = -P.y, d = Math.hypot(gx, gy) || 1, ux = gx/d, uy = gy/d;
+  const len = uy > .2 ? d + .55*D : 0;                                                   // run down to the binding, then a short tail
+  const ew = Math.max(2.4, e[1]*sl.k*.92);
+  Object.assign(st.ext.style, {width:ew+'px', height:len+'px', left:(P.x - ew/2)+'px', top:P.y+'px', transformOrigin:`${ew/2}px 0px`, transform:`rotate(${Math.atan2(-ux, uy)*180/Math.PI}deg)`, zIndex:sl.z - 26000, filter:`brightness(${(sl.bright*.97).toFixed(3)})`});
+  st.ext.style.opacity = masked ? 0 : '';
+}
 function placeStem(st, sl){
-  const s = S(st.vk);
-  const geo = {width:sl.w+'px', height:sl.h+'px', left:(sl.px - s.hx*sl.w)+'px', top:(sl.py - s.hy*sl.h)+'px', transformOrigin:`${s.hx*sl.w}px ${s.hy*sl.h}px`, transform:`rotate(${sl.theta}deg)${st.flip ? ' scaleX(-1)' : ''}`};
+  const s = S(st.vk), rot = stemRot(st, sl);
+  const geo = {width:sl.w+'px', height:sl.h+'px', left:(sl.px - s.hx*sl.w)+'px', top:(sl.py - s.hy*sl.h)+'px', transformOrigin:`${s.hx*sl.w}px ${s.hy*sl.h}px`, transform:`rotate(${rot}deg)${st.flip ? ' scaleX(-1)' : ''}`};
   Object.assign(st.img.style, geo, {zIndex:sl.z - 25000, filter:`brightness(${(sl.bright*.97).toFixed(3)}) drop-shadow(0 2px 2px rgba(60,40,20,.14))`});
   // wrapped: stems disappear into the paper a little below each bloom
   const masked = mode === 'room' && !st.free, cut = s.hy*sl.h + .55*s.d*s.h*sl.k + .45*D;
@@ -560,9 +577,7 @@ function placeStem(st, sl){
   const m = `radial-gradient(${rad}px ${ry}px at ${cx}px ${cy}px, #000 86%, transparent 100%)`;
   Object.assign(st.head.style, geo, {zIndex:sl.z, filter:`brightness(${sl.bright.toFixed(3)}) drop-shadow(0 2px 3px rgba(60,40,20,.2))`, webkitMaskImage:m, maskImage:m});
   Object.assign(st.head.dataset, {rx:rad, ry, cx, cy});
-  const dist = Math.hypot(sl.px, sl.py) - .3*D, ew = 4.2;
-  Object.assign(st.ext.style, {width:ew+'px', height:(dist + .7*D)+'px', left:(-ew/2)+'px', top:(-dist)+'px', transformOrigin:`${ew/2}px ${dist}px`, transform:`rotate(${sl.theta}deg)`, zIndex:sl.z - 26000});
-  st.ext.style.opacity = masked ? 0 : '';
+  placeExt(st, sl, rot, masked);
   st.sl = sl;
 }
 // every stem keeps its own angle and a fixed depth, so adding or removing one only nudges the others
@@ -635,7 +650,7 @@ function land(st){
 function flyTo(st, start){
   const s = S(st.vk), sl = st.sl;
   const end = toScreen(sl.px, sl.py, pose);
-  const endSc = pose.sc, endRot = sl.theta + pose.rot;
+  const endSc = pose.sc, endRot = stemRot(st, sl) + pose.rot;
   const w = sl.w, h = sl.h, ox = s.hx*w, oy = s.hy*h;
   const f = document.createElement('img'); f.className = 'flyer'; f.src = st.vk + '.webp'; f.alt = '';
   Object.assign(f.style, {width:w+'px', height:h+'px', transformOrigin:`${ox}px ${oy}px`});
@@ -1087,11 +1102,6 @@ async function untie(){
   Sound.rustle();
   await sleep(400);
   fan.animate([{transform:'none', opacity:1},{transform:'scale(1.25,.6)', opacity:0}], {duration:800, easing:'cubic-bezier(.5,0,.75,0)', fill:'forwards'});
-  hand.forEach((st,i)=>{
-    const t = st.img.style.transform, a = st.sl.theta;
-    both(st).forEach(e=> e.animate([{transform:t},{transform:`rotate(${a*1.04}deg)${st.flip ? ' scaleX(-1)' : ''}`}], {duration:900, delay:400 + i*20, easing:'cubic-bezier(.2,1.4,.4,1)', fill:'forwards'}));
-    st.ext.animate([{transform:st.ext.style.transform},{transform:`rotate(${a*1.04}deg)`}], {duration:900, delay:400 + i*20, easing:'cubic-bezier(.2,1.4,.4,1)', fill:'forwards'});
-  });
   confetti();
   await sleep(700);
   Sound.chime();
@@ -1279,7 +1289,7 @@ async function renderCard(){
     const e = o.e, w = e.offsetWidth, h = e.offsetHeight, q = Math.min(4, Math.max(1, k*1.2));
     const off = document.createElement('canvas'); off.width = Math.ceil(w*q); off.height = Math.ceil(h*q);
     const og = off.getContext('2d'); og.scale(q, q);
-    if(e.classList.contains('ext')){ const lg = og.createLinearGradient(0,0,w,0); lg.addColorStop(0,'#3f622b'); lg.addColorStop(.45,'#6a9447'); lg.addColorStop(1,'#3c5e29'); og.fillStyle = lg; og.fillRect(0,0,w,h); }
+    if(e.classList.contains('ext')){ const lg = og.createLinearGradient(0,0,w,0); [[0,'#4e3c30'],[.14,'#4e3c30'],[.27,'#8f9370'],[.5,'#abad87'],[.73,'#898e69'],[.86,'#4e3c30'],[1,'#4e3c30']].forEach(([o,c])=> lg.addColorStop(o,c)); og.fillStyle = lg; og.fillRect(0,0,w,h); }
     else if(e.classList.contains('layer')){
       const im = await loadImg(e.querySelector('img').getAttribute('src')); if(!im) continue;
       og.drawImage(im, 0, 0, w, h);
