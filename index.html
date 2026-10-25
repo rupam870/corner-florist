@@ -22,7 +22,9 @@
 <meta name="twitter:title" content="The Corner Florist">
 <meta name="twitter:description" content="A tiny flower shop on the internet. Pick stems, wrap them, send a bouquet.">
 <meta name="twitter:image" content="https://rupam870.github.io/corner-florist/og-app.jpg">
+<link rel="preload" as="image" href="stall.webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=Caveat:wght@500;700&display=swap">
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -255,7 +257,7 @@ textarea.field{font-family:var(--font-hand);font-size:22px;line-height:1.15;min-
 </div>
 
 <div class="scene" id="scene">
-  <div class="frame" id="frame"><img src="stall.jpg" alt="A painted flower stall with seven zinc buckets of roses, peonies, tulips, sunflowers, lavender, anemones and cosmos, above a wooden counter"></div>
+  <div class="frame" id="frame"><img src="stall.webp" fetchpriority="high" decoding="async" alt="A painted flower stall with seven zinc buckets of roses, peonies, tulips, sunflowers, lavender, anemones and cosmos, above a wooden counter"></div>
 </div>
 
 <div class="room-bg" id="roomBg"></div>
@@ -457,8 +459,41 @@ const Sound = (()=>{
     const g = a.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + dur*.35); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     n.connect(f).connect(g).connect(out); n.start(t); n.stop(t + dur + .05);
   }
+  function pop(a, t, pan){
+    // a party popper: a bright paper snap with a small low thump under it
+    const len = Math.ceil(a.sampleRate*.09), b = a.createBuffer(1, len, a.sampleRate), d = b.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = (Math.random()*2 - 1)*Math.exp(-i/(a.sampleRate*.012));
+    const n = a.createBufferSource(); n.buffer = b;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = .7;
+    const g = a.createGain(); g.gain.value = .5;
+    const p = a.createStereoPanner ? a.createStereoPanner() : null; if(p) p.pan.value = pan;
+    n.connect(bp).connect(g); (p ? g.connect(p) : g).connect(a.destination); n.start(t);
+    const o = a.createOscillator(), og = a.createGain(); o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(55, t + .12);
+    og.gain.setValueAtTime(.22, t); og.gain.exponentialRampToValueAtTime(.0001, t + .14);
+    o.connect(og).connect(a.destination); o.start(t); o.stop(t + .16);
+  }
+  function applause(a, t){
+    // a small room clapping: claps swell in quickly, then thin out the way real applause does
+    const dur = 3.6, sr = a.sampleRate, len = Math.ceil(sr*dur), b = a.createBuffer(2, len, sr), L = b.getChannelData(0), R = b.getChannelData(1);
+    for(let tau = 0; tau < dur; tau += .004){
+      const rate = 26*Math.min(1, tau/.35)*Math.exp(-Math.max(0, tau - .8)/.95);
+      if(Math.random() > rate*.004) continue;
+      const at = Math.floor((tau + Math.random()*.004)*sr), cl = Math.floor(sr*(.025 + Math.random()*.025));
+      const amp = .25 + Math.random()*.45, decay = sr*(.006 + Math.random()*.008), pan = Math.random();
+      let prev = 0;
+      for(let i=0;i<cl && at + i < len;i++){
+        const w = Math.random()*2 - 1, v = (w - prev)*amp*Math.min(1, i/(sr*.0008))*Math.exp(-i/decay); prev = w;
+        L[at + i] += v*(1 - pan*.7); R[at + i] += v*(.3 + pan*.7);
+      }
+    }
+    const n = a.createBufferSource(); n.buffer = b;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = .55;
+    const g = a.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.32, t + .25); g.gain.setValueAtTime(.32, t + 1.2); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    n.connect(bp).connect(g).connect(a.destination); n.start(t); n.stop(t + dur);
+  }
   let pickI = 0;
   return {
+    celebrate(){ const a = ctx(); if(!a) return; const t = a.currentTime + .02; pop(a, t, -.6); pop(a, t + .08, .6); applause(a, t + .18); },
     get muted(){ return muted; },
     toggle(){ muted = !muted; store.set('cf-muted', muted ? '1' : '0'); if(!muted) ctx(); },
     pick(){ const a = ctx(); if(!a) return; const t = a.currentTime; bell(a, t, PENTA[(pickI++*2) % PENTA.length], .07, .9); hush(a, t, .35, .05, 1400); },
@@ -1102,7 +1137,7 @@ async function untie(){
   Sound.rustle();
   await sleep(400);
   fan.animate([{transform:'none', opacity:1},{transform:'scale(1.25,.6)', opacity:0}], {duration:800, easing:'cubic-bezier(.5,0,.75,0)', fill:'forwards'});
-  confetti();
+  confetti(); Sound.celebrate();
   await sleep(700);
   Sound.chime();
   await sleep(500);
@@ -1273,7 +1308,7 @@ async function renderCard(){
   try{ await document.fonts.load('700 40px Caveat'); await document.fonts.load('400 40px Gloock'); }catch(e){}
   const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d');
-  const bg = await loadImg('stall.jpg');
+  const bg = await loadImg('stall.webp');
   if(bg){ const s = Math.max(W/bg.width, H/bg.height); g.filter = 'blur(14px)'; g.drawImage(bg, (W - bg.width*s)/2, (H - bg.height*s)/2, bg.width*s, bg.height*s); g.filter = 'none'; }
   g.fillStyle = 'rgba(246,239,226,.62)'; g.fillRect(0, 0, W, H);
   // collect what is visible in the bunch, back to front
@@ -1382,8 +1417,13 @@ addEventListener('resize', ()=>{
 });
 layoutStall(); applyPose(handPose(0), 0); updateUI();
 
-const ASSETS = ['stall.jpg','fan.webp','sleeve.webp','ribbon.webp','tag.webp','hand.webp'].concat(Object.keys(GEO).map(k=> k + '.webp'));
-const ready = Promise.race([Promise.all(ASSETS.map(loadImg)), new Promise(r=> setTimeout(r, 9000))]);
+// open the stall as soon as the painting is in; everything else streams in behind it.
+// A gift waits for only what it needs: its own flowers and the wrapping.
+const WRAP_ASSETS = ['fan.webp','sleeve.webp','ribbon.webp','tag.webp','hand.webp'];
+const giftAtStart = readGift();
+const need = ['stall.webp'].concat(giftAtStart ? WRAP_ASSETS.concat([...new Set(giftAtStart.stems.map(s=> s.vk + '.webp'))]) : []);
+const ready = Promise.race([Promise.all(need.map(loadImg)), new Promise(r=> setTimeout(r, 9000))]);
+ready.then(()=>{ Object.keys(GEO).map(k=> k + '.webp').concat(WRAP_ASSETS).forEach(loadImg); });
 Promise.all([ready, sleep(700)]).then(()=>{
   $('loader').classList.add('out'); setTimeout(()=> $('loader').remove(), 700);
   const gift = readGift();
