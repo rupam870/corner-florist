@@ -12,16 +12,16 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Corner Florist">
 <meta property="og:url" content="https://rupam870.github.io/corner-florist/">
-<meta property="og:title" content="Someone sent you flowers">
-<meta property="og:description" content="A hand-picked bouquet and a little note, wrapped and waiting for you. Or make one for someone you love.">
-<meta property="og:image" content="https://rupam870.github.io/corner-florist/og-image.jpg">
+<meta property="og:title" content="The Corner Florist">
+<meta property="og:description" content="A tiny flower shop on the internet. Pick stems, wrap them in kraft paper, and send a bouquet to someone you love.">
+<meta property="og:image" content="https://rupam870.github.io/corner-florist/og-app.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A painted flower stall with the words: Someone sent you flowers">
+<meta property="og:image:alt" content="A painted flower stall with the words: The Corner Florist">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Someone sent you flowers">
-<meta name="twitter:description" content="A hand-picked bouquet and a little note, wrapped and waiting for you.">
-<meta name="twitter:image" content="https://rupam870.github.io/corner-florist/og-image.jpg">
+<meta name="twitter:title" content="The Corner Florist">
+<meta name="twitter:description" content="A tiny flower shop on the internet. Pick stems, wrap them, send a bouquet.">
+<meta name="twitter:image" content="https://rupam870.github.io/corner-florist/og-app.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=Caveat:wght@500;700&display=swap">
 <style>
@@ -301,7 +301,7 @@ textarea.field{font-family:var(--font-hand);font-size:22px;line-height:1.15;min-
 const MAX = 40;
 // ---------- config ----------
 // Gift links point back at wherever this page is hosted.
-const BASE = location.origin + location.pathname;
+const BASE = location.origin + location.pathname.replace(/[^/]*$/, '') + 'gift/';
 // Paste your Mixpanel project token here to count visits and see the funnel. Empty = no tracking at all.
 const MIXPANEL_TOKEN = 'a8756f7ff8a4b4b5ffa7f5715c7a5858';
 const MAKER = {name:'Rupam', url:''};
