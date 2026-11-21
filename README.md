@@ -8,7 +8,7 @@ Make a custom bouquet and send it to someone you love.
 
 **Netlify Drop**: drag this folder onto https://app.netlify.com/drop.
 
-If the address isn't `https://rupam870.github.io/corner-florist/`, replace that address in the `og:` / `twitter:` / `canonical` tags at the top of `index.html` so link previews show the picture.
+If the address isn't `https://rupam.work/corner-florist/`, replace that address in the `og:` / `twitter:` / `canonical` tags at the top of `index.html` so link previews show the picture.
 
 ## Count visits (Mixpanel)
 

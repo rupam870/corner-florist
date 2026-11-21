@@ -8,20 +8,20 @@
 <meta name="theme-color" content="#4c6a44">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="canonical" href="https://rupam870.github.io/corner-florist/">
+<link rel="canonical" href="https://rupam.work/corner-florist/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Corner Florist">
-<meta property="og:url" content="https://rupam870.github.io/corner-florist/">
+<meta property="og:url" content="https://rupam.work/corner-florist/">
 <meta property="og:title" content="The Corner Florist">
 <meta property="og:description" content="A tiny flower shop on the internet. Pick stems, wrap them in kraft paper, and send a bouquet to someone you love.">
-<meta property="og:image" content="https://rupam870.github.io/corner-florist/og-app.jpg">
+<meta property="og:image" content="https://rupam.work/corner-florist/og-app.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="A painted flower stall with the words: The Corner Florist">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Corner Florist">
 <meta name="twitter:description" content="A tiny flower shop on the internet. Pick stems, wrap them, send a bouquet.">
-<meta name="twitter:image" content="https://rupam870.github.io/corner-florist/og-app.jpg">
+<meta name="twitter:image" content="https://rupam.work/corner-florist/og-app.jpg">
 <link rel="preload" as="image" href="stall.webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -247,6 +247,19 @@ textarea.field{font-family:var(--font-hand);font-size:22px;line-height:1.15;min-
 .invite .maker{margin:12px 0 0;font-size:12px;color:var(--ink-soft);opacity:.8;text-align:center}
 .invite .maker a{color:inherit}
 </style>
+<style>
+.rw-by{position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147483000;font:500 12px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff}
+.rw-by summary{list-style:none;cursor:pointer;padding:7px 11px;border-radius:999px;background:rgba(18,18,22,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:.7;transition:opacity .2s;user-select:none}
+.rw-by summary::-webkit-details-marker{display:none}
+.rw-by summary:hover,.rw-by[open] summary{opacity:1}
+.rw-by div{position:absolute;left:0;bottom:calc(100% + 6px);min-width:170px;padding:6px;border-radius:12px;background:rgba(18,18,22,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.rw-by a{display:block;padding:7px 9px;border-radius:8px;color:#fff;text-decoration:none;white-space:nowrap}
+.rw-by a:hover{background:rgba(255,255,255,.12)}
+.rw-by a.rw-home{opacity:.75}
+@media (max-width:620px){.rw-by{display:none}}
+.rw-foot{max-width:720px;margin:40px auto 0;padding:24px 16px calc(32px + env(safe-area-inset-bottom,0px));font-size:13px;line-height:1.6;color:inherit;opacity:.7;text-align:center}
+.rw-foot a{color:inherit;text-decoration:underline;text-underline-offset:3px;margin:0 6px;white-space:nowrap}
+</style>
 </head>
 <body>
 
@@ -306,7 +319,7 @@ const MAX = 40;
 const BASE = location.origin + location.pathname.replace(/[^/]*$/, '') + 'gift/';
 // Paste your Mixpanel project token here to count visits and see the funnel. Empty = no tracking at all.
 const MIXPANEL_TOKEN = '36ccc38ed07f125c59f57b6aec4a0550';
-const MAKER = {name:'Rupam', url:''};
+const MAKER = {name:'Rupam', url:'https://rupam.work/'};
 { const mk = document.getElementById('maker'); if(mk) mk.innerHTML = 'Made with care by ' + (MAKER.url ? '<a href="' + MAKER.url + '" target="_blank" rel="noopener">' + MAKER.name + '</a>' : MAKER.name); }
 
 // ---------- tracking ----------
@@ -1444,5 +1457,6 @@ Promise.all([ready, sleep(700)]).then(()=>{
 });
 })();
 </script>
+<details class="rw-by"><summary>by Rupam</summary><div><a href="https://rupam.work/gym/">Home Gym Diorama</a><a href="https://rupam.work/water-ring-toss/">Water Ring Toss</a><a href="https://rupam.work/protein-pan/">Protein Pan</a><a class="rw-home" href="https://rupam.work/">Rupam's portfolio ↗</a></div></details>
 </body>
 </html>
